@@ -1,0 +1,38 @@
+RAG_evaluation_1_summary
+
+Scope: A limited corpus of the following files to easily evaluate the quality of responses from the RAG pipeline.
+
+1. rural-tech-catalyst-fund-resource-guide.pdf
+2.rural-health-transformation-50-state-spotlights.pdf
+3. cpi-moratoria-fast-facts.pdf
+4. cpi-fraud-spotlight-marketplace.pdf
+5. fact-sheet-negotiated-prices-ipay-2027.pdf
+6. DGA.pdf
+
+
+List of questions: Every question has the corresponding source document containing the answer. Question #7 has a deliberate spelling mistake to see how that gets handled.
+
+1. "Give me a brief overview of the rural technology catalyst fund", # in rural-tech-catalyst-fund-resource-guide.pdf
+2. "What is RTCF?", # in rural-tech-catalyst-fund-resource-guide.pdf
+3. "Give me some examples of novel solutions considered by the rural technology catalyst fund", # in rural-tech-catalyst-fund-resource-guide.pdf
+4. "What is the executive summary of rural health transformation for the state of Alaska?", # in rural-health-transformation-50-state-spotlights.pdf
+5. "What are some spotlight initiatives of rural health transformation for the state of California?", # in rural-health-transformation-50-state-spotlights.pdf
+6. "How  the Centers for Medicare & Medicaid Services is cracking down on fraud?", # in cpi-moratoria-fast-facts.pdf and cpi-fraud-spotlight-marketplace.pdf
+7. "How the CMS ispprotecting consumers and taxpayers?", # in cpi-fraud-spotlight-marketplace.pdf
+8. "What information did CMS consider during the negotiations with the drug companies?", # in fact-sheet-negotiated-prices-ipay-2027.pdf
+9. "What is the price CMS negotiated for Xifaxan?", # in fact-sheet-negotiated-prices-ipay-2027.pdf
+10. "What are some of the guidelines for eating fruits and veggies?" # DGA.pdf
+
+
+Evaluation: 
+
+Q1. The correct response was found as the top result. # Pass
+Q2. The correct response was found. However, it came as the 3rd result, instead of the first. # Partial Pass (need more check)
+Q3. The correct response was NOT found. # Fail
+Q4. Only the latter half of the correct response was found in the first response. The other responses were the executive summaries of other states. # Partial Pass (check other chunking strategy)
+Q5. The correct response was found within the first response. The other responses were for other states. Also, block headers and content are not grouped, causing context quality. # Partial Pass (check other chunking strategy)
+Q6. The correct responses were found as the top 2 results. # Pass
+Q7. Only a part of the correct response was found at the end of the first response. The remaining part of the correct response was in the second result. # Pass (check other chunking strategy)
+Q8. Only a part of the correct response was found at the end of the first response. The remaining part of the correct response was in the second result. # Pass (check other chunking strategy)
+Q9. The correct response was NOT found. # Fail
+Q10. The correct response was NOT found. # Fail

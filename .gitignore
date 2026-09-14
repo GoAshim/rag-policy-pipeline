@@ -1,0 +1,17 @@
+# Raw/processed data and vector store -- corpus is fetched via script,
+# no need to commit large files. Keep .gitkeep placeholders instead.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/vector_store/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+
+# Secrets
+.env

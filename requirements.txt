@@ -1,0 +1,33 @@
+# Core -- uncomment/add versions as you settle on choices.
+python-dotenv
+
+# for reading and downloading files from URL
+requests            
+
+# for text extraction from PDF
+pdfplumber          
+pymupdf
+pymupdf4llm
+docling
+
+# for HTML parsing
+beautifulsoup4 
+html2text 
+lxml
+
+# parser to preserve Markdown
+mistune
+
+# tokenizer for chunking
+tiktoken
+
+# Embeddings -- pick ONE path (see src/config.py):
+# sentence-transformers   # local embedding models
+openai                  # or anthropic / voyageai, for API-based embeddings
+
+# Vector store -- pick ONE (see src/config.py):
+# chromadb
+# qdrant-client
+weaviate-client
+
+# python-dotenv  # if you're storing API keys in a .env file

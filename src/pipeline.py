@@ -84,11 +84,25 @@ def build_index(strategy: str) -> None:
     vectorstore.add_chunks(collection=collection, chunks=chunks , vectors=vectors, fingerprint=fingerprint)
     print(f"Wrote {len(chunks)} chunks to '{config.VECTOR_STORE_COLLECTION_NAME}'")
 
-def answer_question(strategy: str, question: str, top_k: int = 5) -> dict:
+def answer_question(
+    strategy: str,
+    question: str,
+    top_k: int = 5,
+    mode: str | None = None,
+    alpha: float | None = None,
+    keyword_filter: bool | None = None,
+) -> dict:
     """
     Full query pipeline: embed the question -> retrieve top_k chunks ->
     Returns a dict: {"question": question, "retrieved_chunks": [...], "answer": ...}
+
+    mode / alpha / keyword_filter default to the values in config.py; pass
+    them explicitly to compare settings side by side (see
+    scripts/score_retrieval.py).
     """
+    mode = config.RETRIEVAL_MODE if mode is None else mode
+    alpha = config.HYBRID_ALPHA if alpha is None else alpha
+    keyword_filter = config.KEYWORD_FILTER if keyword_filter is None else keyword_filter
 
     fingerprint = (
         f"{strategy}_{config.CHUNKING_STRATEGY_VERSION}_{config.CHUNK_SIZE}_{config.CHUNK_OVERLAP}"
@@ -101,7 +115,16 @@ def answer_question(strategy: str, question: str, top_k: int = 5) -> dict:
 
     # 2. Retrieve the top_k nearest chunks from the vector store
     collection = vectorstore.get_or_create_collection(config.VECTOR_STORE_COLLECTION_NAME)
-    retrieved_chunks = vectorstore.query_collection(collection, query_embedding, top_k, fingerprint=fingerprint)
+    retrieved_chunks = vectorstore.query_collection(
+        collection,
+        query_embedding,
+        top_k,
+        fingerprint=fingerprint,
+        query_text=question,
+        mode=mode,
+        alpha=alpha,
+        keyword_filter=keyword_filter,
+    )
 
     return {
         "question": question,

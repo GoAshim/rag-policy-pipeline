@@ -1,0 +1,128 @@
+[
+ {
+  "id": "D1",
+  "q": "What is the negotiated price for Ozempic?",
+  "must": [
+   "Ozempic[^\\n]{0,300}?\\$274\\b"
+  ]
+ },
+ {
+  "id": "D2",
+  "q": "How much will Medicare pay for Trelegy Ellipta starting in 2027?",
+  "must": [
+   "Trelegy\\ Ellipta[^\\n]{0,300}?\\$175\\b"
+  ]
+ },
+ {
+  "id": "D3",
+  "q": "What maximum fair price did CMS set for Xtandi?",
+  "must": [
+   "Xtandi[^\\n]{0,300}?\\$7,004\\b"
+  ]
+ },
+ {
+  "id": "D4",
+  "q": "What is the negotiated price for Pomalyst?",
+  "must": [
+   "Pomalyst[^\\n]{0,300}?\\$8,650\\b"
+  ]
+ },
+ {
+  "id": "D5",
+  "q": "How much will Medicare pay for Ofev starting in 2027?",
+  "must": [
+   "Ofev[^\\n]{0,300}?\\$6,350\\b"
+  ]
+ },
+ {
+  "id": "D6",
+  "q": "What maximum fair price did CMS set for Ibrance?",
+  "must": [
+   "Ibrance[^\\n]{0,300}?\\$7,871\\b"
+  ]
+ },
+ {
+  "id": "D7",
+  "q": "What is the negotiated price for Linzess?",
+  "must": [
+   "Linzess[^\\n]{0,300}?\\$136\\b"
+  ]
+ },
+ {
+  "id": "D8",
+  "q": "How much will Medicare pay for Calquence starting in 2027?",
+  "must": [
+   "Calquence[^\\n]{0,300}?\\$8,600\\b"
+  ]
+ },
+ {
+  "id": "D9",
+  "q": "What maximum fair price did CMS set for Austedo?",
+  "must": [
+   "Austedo[^\\n]{0,300}?\\$4,093\\b"
+  ]
+ },
+ {
+  "id": "D10",
+  "q": "What is the negotiated price for Breo Ellipta?",
+  "must": [
+   "Breo\\ Ellipta[^\\n]{0,300}?\\$67\\b"
+  ]
+ },
+ {
+  "id": "D11",
+  "q": "How much will Medicare pay for Xifaxan starting in 2027?",
+  "must": [
+   "Xifaxan[^\\n]{0,300}?\\$1,000\\b"
+  ]
+ },
+ {
+  "id": "D12",
+  "q": "What maximum fair price did CMS set for Vraylar?",
+  "must": [
+   "Vraylar[^\\n]{0,300}?\\$770\\b"
+  ]
+ },
+ {
+  "id": "D13",
+  "q": "What is the negotiated price for Tradjenta?",
+  "must": [
+   "Tradjenta[^\\n]{0,300}?\\$78\\b"
+  ]
+ },
+ {
+  "id": "D14",
+  "q": "How much will Medicare pay for Janumet starting in 2027?",
+  "must": [
+   "Janumet[^\\n]{0,300}?\\$80\\b"
+  ]
+ },
+ {
+  "id": "D15",
+  "q": "What maximum fair price did CMS set for Otezla?",
+  "must": [
+   "Otezla[^\\n]{0,300}?\\$1,650\\b"
+  ]
+ },
+ {
+  "id": "N1",
+  "q": "What is the MFP per package for NDC 00169-4130-13?",
+  "must": [
+   "00169\\-4130\\-13[^\\n]{0,200}?\\$276\\.78"
+  ]
+ },
+ {
+  "id": "N2",
+  "q": "What is the MFP per package for NDC 00169-4307-30?",
+  "must": [
+   "00169\\-4307\\-30[^\\n]{0,200}?\\$276\\.78"
+  ]
+ },
+ {
+  "id": "N3",
+  "q": "What is the MFP per package for NDC 00169-4524-14?",
+  "must": [
+   "00169\\-4524\\-14[^\\n]{0,200}?\\$385\\.63"
+  ]
+ }
+]

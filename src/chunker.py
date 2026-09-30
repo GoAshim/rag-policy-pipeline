@@ -507,6 +507,46 @@ def _split_section_preserving_table_headers(text: str, chunk_size: int, overlap:
     return sub_texts
 
 
+def _merge_empty_headings(sections: list[dict]) -> list[dict]:
+    """
+    Multi-column PDF layouts often come out of the parser as several
+    headings in a row with nothing under them, followed by all the
+    content, e.g. in the rural-health spotlights PDF:
+
+        ### Goals & Key Themes
+        ### Spotlight Initiatives
+        ### Expected Impact
+        - bullet, bullet, bullet ...
+
+    Taken literally, every bullet belongs to "Expected Impact" and the
+    first two headings are dropped as empty sections. Instead, fold the
+    empty sibling headings into the next section's title:
+    "Goals & Key Themes / Spotlight Initiatives / Expected Impact".
+    """
+    merged = []
+    pending = []          # titles of empty sections waiting to be folded in
+    pending_parent = None  # their parent heading path
+    for section in sections:
+        path = section["heading_path"]
+        is_empty = bool(path) and "\n" not in section["text"].strip()
+        if is_empty:
+            if pending and path[:-1] != pending_parent:
+                pending = []
+            pending.append(path[-1])
+            pending_parent = path[:-1]
+            continue
+        if pending and path and path[:-1] == pending_parent:
+            title = " / ".join(pending + [path[-1]])
+            body = section["text"].split("\n", 1)[1] if "\n" in section["text"] else ""
+            section = {
+                "heading_path": path[:-1] + [title],
+                "text": f"{title}\n{body}",
+            }
+        pending, pending_parent = [], None
+        merged.append(section)
+    return merged
+
+
 def structure_aware_chunk(
     doc: RawDocument,
     chunk_size: int = 512,
@@ -532,6 +572,8 @@ def structure_aware_chunk(
     enc = tiktoken.get_encoding(tokenizer_model)
 
     sections = _split_by_headers(doc.text)
+    if config.MERGE_EMPTY_HEADINGS:
+        sections = _merge_empty_headings(sections)
 
     chunks = []
     chunk_idx = 0

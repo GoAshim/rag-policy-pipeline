@@ -6,6 +6,8 @@ user query.
 
 # Import the class/method to get the chunks
 from src.chunker import Chunk
+from src import config
+from src.keywords import extract_keywords
 
 # Import Weaviate and associated modules
 import weaviate
@@ -17,7 +19,9 @@ from weaviate.classes.query import Filter
 
 # Connect to Local Weaviate Instance, which automatically binds to 
 # http://localhost:8080 and gRPC port 50051
-client = weaviate.connect_to_local()
+client = weaviate.connect_to_local(
+    port=config.WEAVIATE_HTTP_PORT, grpc_port=config.WEAVIATE_GRPC_PORT
+)
 
 
 def get_or_create_collection(collection_name: str):
@@ -55,7 +59,20 @@ def get_or_create_collection(collection_name: str):
                 Property(name="heading_path",data_type=DataType.TEXT),
                 Property(name="content",data_type=DataType.TEXT),
                 Property(name="fingerprint",data_type=DataType.TEXT),
+                # Known names (drugs, states) found in the chunk text.
+                # FIELD tokenization = match the whole name exactly.
+                Property(name="keywords", data_type=DataType.TEXT_ARRAY,
+                         tokenization=wvc.config.Tokenization.FIELD),
             ]
+        )
+
+    # Collections created before the "keywords" property existed get it
+    # added here (existing objects just have it empty until re-indexed).
+    existing = {p.name for p in collection.config.get().properties}
+    if "keywords" not in existing:
+        collection.config.add_property(
+            Property(name="keywords", data_type=DataType.TEXT_ARRAY,
+                     tokenization=wvc.config.Tokenization.FIELD)
         )
 
     return collection
@@ -137,6 +154,7 @@ def add_chunks(collection, chunks: list[Chunk], vectors: list[list[float]], fing
                     "heading_path": chunk.metadata.get("heading_path"),
                     "content": chunk.text,
                     "fingerprint": fingerprint,
+                    "keywords": extract_keywords(chunk.text),
                 },
                 vector=vector,
             )
@@ -145,11 +163,26 @@ def add_chunks(collection, chunks: list[Chunk], vectors: list[list[float]], fing
         for failed in collection.batch.failed_objects:
             print(failed.message)
 
-def query_collection(collection, query_embedding: list[float], top_k: int, fingerprint:str) -> list[dict]:
+def query_collection(
+    collection,
+    query_embedding: list[float],
+    top_k: int,
+    fingerprint: str,
+    query_text: str | None = None,
+    mode: str = "vector",
+    alpha: float = 0.75,
+    keyword_filter: bool = False,
+) -> list[dict]:
     """
-    Return the top_k nearest chunks to the query embedding, with their
-    text, metadata, and similarity score, restricted to chunks written
-    under the given fingerprint.
+    Return the top_k best-matching chunks for the question, with their
+    text, metadata, and score, restricted to chunks written under the
+    given fingerprint.
+
+    mode="vector": nearest vectors only (original behaviour).
+    mode="hybrid": blend vector search with keyword (BM25) search on the
+                   question text. alpha=1.0 is pure vector, 0.0 pure keyword.
+    keyword_filter: if the question names a known drug/state, only
+                   search chunks tagged with that name.
     """
 
     # Build the query to filter the collection in Weaviate
@@ -163,12 +196,34 @@ def query_collection(collection, query_embedding: list[float], top_k: int, finge
     # built by the same chunking strategy defined in the config file, 
     # and not on the entire collection which will have chunks from the 
     # same documents using other chunking strategies
-    response = collection.query.near_vector(
-        near_vector=query_embedding,
-        filters=filter_collection,  
-        limit=top_k,
-        return_metadata=wvc.query.MetadataQuery(distance=True),
-    )
+    matched_keywords = []
+    if keyword_filter and query_text:
+        matched_keywords = extract_keywords(query_text)
+        if matched_keywords:
+            filter_collection = filter_collection & (
+                wvc.query.Filter.by_property("keywords").contains_any(matched_keywords)
+            )
+
+    if mode == "hybrid":
+        if not query_text:
+            raise ValueError("hybrid mode needs the question text (query_text)")
+        response = collection.query.hybrid(
+            query=query_text,
+            vector=query_embedding,
+            alpha=alpha,
+            fusion_type=wvc.query.HybridFusion.RELATIVE_SCORE,
+            query_properties=["content"],
+            filters=filter_collection,
+            limit=top_k,
+            return_metadata=wvc.query.MetadataQuery(score=True),
+        )
+    else:
+        response = collection.query.near_vector(
+            near_vector=query_embedding,
+            filters=filter_collection,
+            limit=top_k,
+            return_metadata=wvc.query.MetadataQuery(distance=True),
+        )
 
     results = []
     for obj in response.objects:
@@ -183,10 +238,27 @@ def query_collection(collection, query_embedding: list[float], top_k: int, finge
                 "token_count": properties.get("token_count"),
                 "heading_path": properties.get("heading_path"),
             },
-            "score": 1 - obj.metadata.distance,
+            # vector: cosine similarity. hybrid: Weaviate's fused score (0-1).
+            "score": (obj.metadata.score if mode == "hybrid" else 1 - obj.metadata.distance),
+            "matched_keywords": matched_keywords,
         })
 
     return results
+
+
+def backfill_keywords(collection) -> int:
+    """
+    Tag chunks that were indexed before keyword tagging existed, without
+    re-embedding them (no OpenAI cost). Safe to re-run.
+    Returns the number of chunks updated.
+    """
+    updated = 0
+    for obj in collection.iterator(return_properties=["content", "keywords"]):
+        tags = extract_keywords(obj.properties.get("content") or "")
+        if sorted(obj.properties.get("keywords") or []) != tags:
+            collection.data.update(uuid=obj.uuid, properties={"keywords": tags})
+            updated += 1
+    return updated
 
 
 def close_client() -> None:

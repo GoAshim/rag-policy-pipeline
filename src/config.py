@@ -33,6 +33,32 @@ VECTOR_STORE_COLLECTION_NAME = "sprint1_corpus"
 # CHUNKING_STRATEGY = "recursive"
 CHUNKING_STRATEGY = "structure_aware"
 CHUNKING_STRATEGY_VERSION = "v01"
+# Fold runs of empty headings (a multi-column PDF artifact) into the next
+# section's title. See chunker._merge_empty_headings.
+MERGE_EMPTY_HEADINGS = False
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = 75
+
+# --- Retrieval settings --------------------------------------------------
+# "vector" = meaning-only search (the original behaviour).
+# "hybrid" = meaning + keyword (BM25) search blended together. Keyword
+#            search is what finds exact names/codes like "Xifaxan" or
+#            an NDC number that the embedding model blurs together.
+RETRIEVAL_MODE = "vector"
+
+# Only used when RETRIEVAL_MODE = "hybrid".
+# 1.0 = all meaning, 0.0 = all keyword. 0.75 = mostly meaning, some keyword.
+HYBRID_ALPHA = 0.75
+
+# Keyword tags: every chunk is tagged with the known names it mentions
+# (drug names, state names -- see src/keywords.py). If a question names
+# one of them, search only the chunks carrying that tag.
+KEYWORD_FILTER = False
+
+# --- Weaviate connection -------------------------------------------------
+# Defaults match docker-compose.yml. Override with env vars if those
+# ports are taken on your machine.
+import os
+WEAVIATE_HTTP_PORT = int(os.getenv("WEAVIATE_HTTP_PORT", "8080"))
+WEAVIATE_GRPC_PORT = int(os.getenv("WEAVIATE_GRPC_PORT", "50051"))
 

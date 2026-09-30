@@ -33,6 +33,9 @@ VECTOR_STORE_COLLECTION_NAME = "sprint1_corpus"
 # CHUNKING_STRATEGY = "recursive"
 CHUNKING_STRATEGY = "structure_aware"
 CHUNKING_STRATEGY_VERSION = "v01"
+# Fold runs of empty headings (a multi-column PDF artifact) into the next
+# section's title. See chunker._merge_empty_headings.
+MERGE_EMPTY_HEADINGS = False
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = 75
 
